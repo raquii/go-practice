@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	// "log"
-	// "net/http"
+	"log"
+	"net/http"
+	"regexp"
 )
 
 type Reverser interface {
@@ -22,12 +23,20 @@ type Mirrorer interface {
 	Mirror() string
 }
 
-// type StringManipulator interface {
-// 	Reverser
-// 	Echoer
-// 	VowelRemover
-// 	Mirrorer
-// }
+type StringFactory func(str string) interface{}
+
+func createStringHandler(getString StringFactory) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+	}
+}
+
+type StringManipulator interface {
+	Reverser
+	Echoer
+	VowelRemover
+	Mirrorer
+}
 
 type MyString string
 
@@ -67,26 +76,32 @@ func (s MyString) Mirror() (result string) {
 	return
 }
 
+func manipulate(s StringManipulator) {
+	fmt.Printf("Echo: %s\n", s.Echo())
+	fmt.Printf("Mirror: %s\n", s.Mirror())
+	fmt.Printf("Reverse: %s\n", s.Reverse())
+	fmt.Printf("VowelRemove: %s\n", s.VowelRemove())
+}
+
 // path: /echo/:word
 // renders the word input in the URL path in an H1 element
-// func echoHandler(w http.ResponseWriter, r *http.Request) {
-// 	e := r.URL.Path[len("/echo/"):]
-// 	fmt.Fprintf(w, "<h1>%s</h1>", e)
-// }
+func echoHandler(w http.ResponseWriter, r *http.Request) {
+	e := r.URL.Path[len("/echo/"):]
+	fmt.Fprintf(w, "<h1>%s</h1>", e)
+}
 
-// // handles API request routing
-// func handleRequests() {
-// 	http.HandleFunc("/echo/", echoHandler)
-// 	log.Fatal(http.ListenAndServe(":8080", nil))
-// }
+// handles API request routing
+func handleRequests() {
+	http.HandleFunc("/echo/", echoHandler)
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
 
 // entrypoint to application
 func main() {
 	// handleRequests()
 	m := MyString("This is a test")
-	fmt.Printf("Echo: %s\n", m.Echo())
-	fmt.Printf("Mirror: %s\n", m.Mirror())
-	fmt.Printf("Reverse: %s\n", m.Reverse())
-	fmt.Printf("VowelRemove: %s\n", m.VowelRemove())
-
+	re := regexp.MustCompile(`([^/]+)/?$`)
+	r := "/test/what/iwantthis"
+	fmt.Printf("%q\n", re.FindString(r))
+	manipulate(m)
 }

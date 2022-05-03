@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"regexp"
+	"strings"
 )
 
 type Reverser interface {
@@ -21,14 +21,6 @@ type VowelRemover interface {
 
 type Mirrorer interface {
 	Mirror() string
-}
-
-type StringFactory func(str string) interface{}
-
-func createStringHandler(getString StringFactory) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-	}
 }
 
 type StringManipulator interface {
@@ -76,32 +68,51 @@ func (s MyString) Mirror() (result string) {
 	return
 }
 
-func manipulate(s StringManipulator) {
-	fmt.Printf("Echo: %s\n", s.Echo())
-	fmt.Printf("Mirror: %s\n", s.Mirror())
-	fmt.Printf("Reverse: %s\n", s.Reverse())
-	fmt.Printf("VowelRemove: %s\n", s.VowelRemove())
-}
-
-// path: /echo/:word
-// renders the word input in the URL path in an H1 element
-func echoHandler(w http.ResponseWriter, r *http.Request) {
-	e := r.URL.Path[len("/echo/"):]
-	fmt.Fprintf(w, "<h1>%s</h1>", e)
+// creates an array of manipulated strings
+func manipulate(s StringManipulator) [4]string {
+	return [4]string{s.Echo(), s.Mirror(), s.Reverse(), s.VowelRemove()}
 }
 
 // handles API request routing
 func handleRequests() {
-	http.HandleFunc("/echo/", echoHandler)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// select the path
+		p := r.URL.Path[1:]
+		i := strings.Index(p, "/")
+
+		// if there is a '/' in `p`, we will see if it is followed by the name of one of the manipulator functions
+		if i > 0 {
+			word := MyString(p[:i])
+			fn := strings.ToLower(p[i+1:])
+			l := manipulate(word)
+
+			funcs := map[string]int{
+				"echo":        0,
+				"mirror":      1,
+				"reverse":     2,
+				"vowelremove": 3,
+			}
+
+			idx, exists := funcs[fn]
+			// if it is one of the manipulator functions, we will render it
+			if exists {
+				fmt.Fprintf(w, "<h1>%s:</h1><h1>%s</h1>", fn, l[idx])
+			} else {
+				// otherwise we will render the word with a suggestion
+				fmt.Fprintf(w, "<h1>%s</h1><h3>pst, try replacing '%s' with one of the manipulators:</h3><ul><li>echo</li><li>mirror</li><li>reverse</li><li>vowelremove</li></ul>", word, fn)
+			}
+
+		} else {
+			word := MyString(p)
+			l := manipulate(word)
+			fmt.Fprintf(w, "<h1>Echo: %s</h1><h1>Mirror: %s</h1><h1>Reverse: %s</h1><h1>VowelRemove: %s</h1>", l[0], l[1], l[2], l[3])
+		}
+
+	})
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 // entrypoint to application
 func main() {
-	// handleRequests()
-	m := MyString("This is a test")
-	re := regexp.MustCompile(`([^/]+)/?$`)
-	r := "/test/what/iwantthis"
-	fmt.Printf("%q\n", re.FindString(r))
-	manipulate(m)
+	handleRequests()
 }

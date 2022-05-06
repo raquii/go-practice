@@ -1,6 +1,7 @@
 package main
 
 import (
+	"example/getgoing/duck"
 	"example/getgoing/processor"
 	"fmt"
 	"log"
@@ -41,5 +42,5 @@ func handleRequests() {
 
 // entrypoint to application
 func main() {
-	handleRequests()
+	duck.DuckTime()
 }

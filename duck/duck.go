@@ -2,16 +2,14 @@ package duck
 
 import "fmt"
 
+type DuckTypes interface {
+	ActLikeDuck()
+}
+
 type duck struct {
 	name   string
 	quack  quack
 	flight fly
-}
-
-func newDuck(name string) *duck {
-	return &duck{
-		name: name,
-	}
 }
 
 func (d *duck) learnToFly(f fly) {
@@ -22,7 +20,8 @@ func (d *duck) learnToQuack(q quack) {
 	d.quack = q
 }
 
-func (d *duck) actLikeDuck() {
+func (d *duck) ActLikeDuck() {
+	fmt.Println("---------🦆---------")
 	fmt.Printf("%s ", d.name)
 	d.flight.useFly()
 	fmt.Printf("%s ", d.name)
@@ -30,27 +29,24 @@ func (d *duck) actLikeDuck() {
 	fmt.Println("--------------------")
 }
 
-func DuckTime() {
-	fmt.Println("🦆 It's time for ducks. 🦆")
+func NewDuck(name string, fly bool, quack bool) DuckTypes {
+	d := duck{name: name}
 
-	fly := newFlyWithWings()
-	noFly := newCantFly()
+	if fly {
+		f := newFlyWithWings()
+		d.learnToFly(f)
+	} else {
+		f := newCantFly()
+		d.learnToFly(f)
+	}
 
-	duckQuack := newDuckCall()
-	silentQuack := newSilentCall()
+	if quack {
+		q := newDuckCall()
+		d.learnToQuack(q)
+	} else {
+		q := newSilentCall()
+		d.learnToQuack(q)
+	}
 
-	mallard := newDuck("Mallard Duck")
-	mallard.learnToFly(fly)
-	mallard.learnToQuack(duckQuack)
-	mallard.actLikeDuck()
-
-	pekin := newDuck("Pekin Duck")
-	pekin.learnToFly(noFly)
-	pekin.learnToQuack(duckQuack)
-	pekin.actLikeDuck()
-
-	rubber := newDuck("Rubber Duck")
-	rubber.learnToFly(noFly)
-	rubber.learnToQuack(silentQuack)
-	rubber.actLikeDuck()
+	return &d
 }

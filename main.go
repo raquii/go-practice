@@ -40,7 +40,51 @@ func handleRequests() {
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
+func yesOrNo() (b bool) {
+	var i string
+	fmt.Println(" y/n")
+
+	for {
+		fmt.Scan(&i)
+
+		if i == "n" {
+			b = false
+			break
+		} else if i == "y" {
+			b = true
+			break
+		}
+		fmt.Println("Invalid!: Enter y for 'yes', n for 'no'.")
+	}
+	return
+}
+
+func start() {
+	fmt.Print("Would you like to make a duck?")
+	r := yesOrNo()
+
+	if r {
+		var n string
+		fmt.Println("\nWhat kind of duck will you make?")
+		fmt.Scan(&n)
+		fmt.Printf("\nNice, a %s duck\n", n)
+
+		fmt.Printf("\nCan %s duck fly?", n)
+		f := yesOrNo()
+
+		fmt.Printf("\nCan %s duck quack?", n)
+		q := yesOrNo()
+
+		d := duck.NewDuck(n, f, q)
+
+		d.ActLikeDuck()
+		start()
+	} else {
+		fmt.Print("Okay. Quitting...")
+	}
+}
+
 // entrypoint to application
 func main() {
-	duck.DuckTime()
+	start()
 }
